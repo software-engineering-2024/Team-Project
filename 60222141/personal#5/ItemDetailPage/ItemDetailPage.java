@@ -6,8 +6,5 @@ public class ItemDetailPage {
 	private Image itemDetailImage;
 	private double deliveryCharge;
 	
-	public ItemDetailPage openItemDetailPage(String itemID) {
-		ItemDetailPage m = new ItemDetailPage(); 
-		return m;
-	}
+	public ItemDetailPage openItemDetailPage(String itemID) {ItemDetailPage m = new ItemDetailPage(); return m;}
 }
