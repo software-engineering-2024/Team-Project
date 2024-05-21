@@ -1,23 +1,116 @@
+import java.util.HashMap;
 public class AuthenticationService {
-	private static AuthenticationService instance;
-	private String authToken;
+    private static AuthenticationService instance;
+    private Map<String, String> userDatabase; // 사용자 이름과 비밀번호
+    private Map<String, String> tokenUserMap; // 토큰과 사용자 이름
+    private Map<String, Integer> userLoginAttempts; // 사용자 로그인 시도 횟수
+    private static final Logger LOGGER = Logger.getLogger(AuthenticationService.class.getName());
 
-	private AuthenticationService() {
-	} // 비공개 생성자
+    private AuthenticationService() {
+        userDatabase = new HashMap<>();
+        tokenUserMap = new HashMap<>();
+        userLoginAttempts = new HashMap<>();
+        initializeUsers();
+    }
 
-	public static AuthenticationService getInstance() {
-		if (instance == null) {
-			instance = new AuthenticationService();
-		}
-		return instance;
-	}
+    private void initializeUsers() {
+        // 초기 사용자 설정
+        userDatabase.put("admin", "admin123");
+        userDatabase.put("user", "user123");
+        userDatabase.put("guest", "guest123");
+        LOGGER.info("Initial users added to the system.");
+    }
 
-	public boolean login(String username, String password) {
-		// 로그인 로직 (기본 구현)
-		return true;
-	}
+    public static AuthenticationService getInstance() {
+        if (instance == null) {
+            synchronized (AuthenticationService.class) {
+                if (instance == null) {
+                    instance = new AuthenticationService();
+                }
+            }
+        }
+        return instance;
+    }
 
-	public void logout(String userID) {
-		// 로그아웃 로직 (기본 구현)
-	}
+    public String login(String username, String password) {
+        // 사용자 로그인 시도 카운트 증가
+        userLoginAttempts.put(username, userLoginAttempts.getOrDefault(username, 0) + 1);
+        LOGGER.info("Login attempt for user: " + username + " Attempt #" + userLoginAttempts.get(username));
+
+        if (username != null && password != null && password.equals(userDatabase.get(username))) {
+            if (userLoginAttempts.get(username) <= 5) {
+                String token = UUID.randomUUID().toString();
+                tokenUserMap.put(token, username);
+                LOGGER.info("Login successful for user: " + username);
+                userLoginAttempts.put(username, 0); // 성공시 시도 횟수 리셋
+                return token;
+            } else {
+                LOGGER.warning("Account locked due to too many login attempts: " + username);
+                return null;
+            }
+        } else {
+            LOGGER.warning("Invalid login credentials for user: " + username);
+            if (userLoginAttempts.get(username) >= 5) {
+                LOGGER.warning("User account locked due to too many failed attempts: " + username);
+            }
+            return null;
+        }
+    }
+
+    public boolean logout(String token) {
+        if (token != null && tokenUserMap.containsKey(token)) {
+            LOGGER.info("Logout successful for user: " + tokenUserMap.get(token));
+            tokenUserMap.remove(token);
+            return true;
+        } else {
+            LOGGER.warning("Logout failed for token: " + token);
+            return false;
+        }
+    }
+
+    public boolean isAuthenticated(String token) {
+        boolean isAuthenticated = tokenUserMap.containsKey(token);
+        LOGGER.info("Authentication status for token: " + token + " is " + isAuthenticated);
+        return isAuthenticated;
+    }
+
+    public String getUsername(String token) {
+        return tokenUserMap.get(token);
+    }
+
+    public void addUser(String username, String password) {
+        if (!userDatabase.containsKey(username)) {
+            userDatabase.put(username, password);
+            LOGGER.info("User added: " + username);
+        } else {
+            LOGGER.warning("Attempt to add already existing user: " + username);
+        }
+    }
+
+    public void deleteUser(String username) {
+        if (userDatabase.containsKey(username)) {
+            userDatabase.remove(username);
+            LOGGER.info("User deleted: " + username);
+        } else {
+            LOGGER.warning("Attempt to delete non-existing user: " + username);
+        }
+    }
+
+    public void changePassword(String username, String newPassword) {
+        if (userDatabase.containsKey(username)) {
+            userDatabase.put(username, newPassword);
+            LOGGER.info("Password changed for user: " + username);
+        } else {
+            LOGGER.warning("Attempt to change password for non-existing user: " + username);
+        }
+    }
+
+    public void resetAllSessions() {
+        tokenUserMap.clear();
+        LOGGER.info("All user sessions have been reset.");
+    }
+
+    public int getTotalUsers() {
+        return userDatabase.size();
+    }
 }
