@@ -1,6 +1,10 @@
 package UserPreferences;
 
 public class UserPreferences {
+	
+	// 개별 과제 7 테스트 용 클래스
+	// 누락된 getter 추가
+	
 	// 멤버 변수
 	private String skinType;
 	private double height;
@@ -34,5 +38,26 @@ public class UserPreferences {
 		weight = mWeight;
 		favorFit = mFavorFit;
 		favorColor = mFavorColor;
+	}
+	
+	// get 메소드
+	public String getSkinType() {
+		return skinType;
+	}
+	
+	public double getHeight() {
+		return height;
+	}
+	
+	public double getWeight() {
+		return weight;
+	}
+	
+	public String getFavorFit() {
+		return favorFit;
+	}
+	
+	public String getFavorColor() {
+		return favorColor;
 	}
 }
