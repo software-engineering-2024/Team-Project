@@ -1,0 +1,53 @@
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+class AuthenticationServiceTest {
+    private AuthenticationService authService;
+
+    @BeforeEach
+    public void setUp() {
+        authService = AuthenticationService.getInstance();
+        authService.resetAllSessions(); // 초기화
+    }
+
+    @Test
+    public void testLoginSuccess() {
+        String token = authService.login("admin", "admin123");
+        assertNotNull(token, "Login should succeed for correct credentials");
+        assertTrue(authService.isAuthenticated(token), "User should be authenticated with valid token");
+    }
+
+    @Test
+    public void testLoginFailure() {
+        String token = authService.login("admin", "wrongpassword");
+        assertNull(token, "Login should fail for incorrect credentials");
+    }
+
+    @Test
+    public void testAccountLockAfterMultipleFailures() {
+        for (int i = 0; i < 5; i++) {
+            authService.login("user", "wrongpassword");
+        }
+        String token = authService.login("user", "user123");
+        assertNull(token, "Account should be locked after 5 failed attempts");
+    }
+
+    @Test
+    public void testAddAndDeleteUser() {
+        authService.addUser("newuser", "newpassword");
+        String token = authService.login("newuser", "newpassword");
+        assertNotNull(token, "Newly added user should be able to log in");
+
+        authService.deleteUser("newuser");
+        token = authService.login("newuser", "newpassword");
+        assertNull(token, "Deleted user should not be able to log in");
+    }
+
+    @Test
+    public void testChangePassword() {
+        authService.changePassword("admin", "newadminpassword");
+        String token = authService.login("admin", "newadminpassword");
+        assertNotNull(token, "User should be able to log in with new password");
+    }
+}
