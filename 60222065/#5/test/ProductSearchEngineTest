@@ -1,0 +1,49 @@
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import java.util.List;
+import java.util.Map;
+
+class ProductSearchEngineTest {
+    private ProductSearchEngine searchEngine;
+
+    @BeforeEach
+    public void setUp() {
+        searchEngine = new ProductSearchEngine();
+    }
+
+    @Test
+    public void testSearchByCategory() {
+        List<Product> products = searchEngine.searchByCategory("Electronics");
+        assertEquals(3, products.size(), "There should be three electronic products");
+    }
+
+    @Test
+    public void testSearchByKeyword() {
+        List<Product> products = searchEngine.searchByKeyword("Laptop");
+        assertEquals(1, products.size(), "There should be one product with the keyword Laptop");
+    }
+
+    @Test
+    public void testAddAndRemoveProduct() {
+        Product newProduct = new Product("Tablet", 299.99, "Electronics");
+        searchEngine.addProduct(newProduct);
+        assertEquals(4, searchEngine.searchByCategory("Electronics").size(), "There should be four electronic products after addition");
+
+        searchEngine.removeProduct(newProduct);
+        assertEquals(3, searchEngine.searchByCategory("Electronics").size(), "There should be three electronic products after removal");
+    }
+
+    @Test
+    public void testFilterProductsByPrice() {
+        List<Product> products = searchEngine.filterProductsByPrice(50, 100);
+        assertEquals(1, products.size(), "There should be one product in the price range 50 to 100");
+    }
+
+    @Test
+    public void testCountProductsByCategory() {
+        Map<String, Long> categoryCounts = searchEngine.countProductsByCategory();
+        assertEquals(1, categoryCounts.get("Books"), "There should be one product in the Books category");
+        assertEquals(3, categoryCounts.get("Electronics"), "There should be three products in the Electronics category");
+    }
+}
